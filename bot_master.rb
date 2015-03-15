@@ -8,7 +8,7 @@ class BotMaster
   def add_nick(nick, callback)
     nick =~ /@(.*):(.*)\.(.*).*/
     name = "#{$1}-#{$2}-#{$3}"
-    @state[nick] = Irc.new(lambda{}, name, callback).bot
+    @state[nick] = Irc.new(lambda{|n|}, name, callback).bot
     Thread.new{ @state[nick].start }
     @state[nick]
   end
