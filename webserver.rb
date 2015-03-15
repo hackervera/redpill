@@ -3,6 +3,8 @@ require 'json'
 require './irc'
 require './matrix'
 require 'yaml'
+require './bot_master'
+require 'pry'
 
 class Webserver < Sinatra::Base
   set :bind, '0.0.0.0'
@@ -17,11 +19,14 @@ class Webserver < Sinatra::Base
     host = matrix_channel.split(":").last
     user = "@irc/#{nick}:#{host}"
     room_id = matrix.room_id(matrix_channel, token)
-    matrix.join(room_id, config["app_password"], user)
-    matrix.send_message(room_id, m.message, config["app_password"], user)
+    unless user =~ /relay-/
+      matrix.join(room_id, config["app_password"], user)
+      matrix.send_message(room_id, m.message, config["app_password"], user)
+    end
   end
   irc = Irc.new(callback)
   Thread.new{ irc.start }
+  bot_master = BotMaster.new
   
   def in_channel?(irc, channel_name)
     irc.bot.channels.detect{|c| c == channel_name}
@@ -35,16 +40,29 @@ class Webserver < Sinatra::Base
     return {}.to_json unless data["type"] == "m.room.message"
     message = data["content"]["body"]
     nick = data["user_id"]
+    clean_nick = nick.split(":")
     host = data["room_id"].split(":").last
     room_alias = matrix.alias(data["room_id"], token)
     irc_channel = config["channel_map"].detect{|c| c["matrix_channel"] == room_alias}["irc_channel"]
-    channel = irc.bot.Channel(irc_channel)
-    output = "<#{nick}> #{message}"
-    if in_channel?(irc, channel.name)
-      channel.send(output) unless nick =~ /irc/
-    else
-      irc.bot.join(irc_channel)
-      channel.send(output) unless nick =~ /irc/
+    
+    if nick !~ /irc/
+      bot = bot_master.get_bot(nick)
+      if bot
+        channel = bot.Channel(irc_channel)
+        if in_channel?(bot, channel.name)
+          channel.send(message)
+        else
+          bot.join(irc_channel)
+          channel.send(message)
+        end
+      else
+        callback = lambda{|bot|
+          channel = bot.Channel(irc_channel)
+          bot.join irc_channel
+          channel.send(message)
+        }
+        bot_master.add_nick(nick, callback)
+      end
     end
     {}.to_json
   end
