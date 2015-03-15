@@ -39,11 +39,12 @@ class Webserver < Sinatra::Base
     room_alias = matrix.alias(data["room_id"], token)
     irc_channel = config["channel_map"].detect{|c| c["matrix_channel"] == room_alias}["irc_channel"]
     channel = irc.bot.Channel(irc_channel)
+    output = "<#{nick}> #{message}"
     if in_channel?(irc, channel.name)
-      channel.send("#{nick}: #{message}") unless nick =~ /irc/
+      channel.send(output) unless nick =~ /irc/
     else
       irc.bot.join(irc_channel)
-      channel.send("#{nick}: #{message}") unless nick =~ /irc/
+      channel.send(output) unless nick =~ /irc/
     end
     {}.to_json
   end

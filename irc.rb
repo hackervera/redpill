@@ -1,7 +1,6 @@
 require 'cinch'
 require 'yaml'
 class Irc
-  
   attr_accessor :bot
   def initialize(callback)
     config = YAML.load_file('config.yaml')
@@ -13,6 +12,11 @@ class Irc
 
       on :message do |m|
         callback.call(m)
+      end
+      
+      on :connect do
+        channels = config["channel_map"].map{|c| c["irc_channel"]}
+        channels.each{|c| @bot.join(c) }
       end
     end
   end
