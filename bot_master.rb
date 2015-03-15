@@ -1,5 +1,5 @@
 require './irc'
-Thread.new{ irc.start }
+#Thread.new{ irc.start }
 class BotMaster
   def initialize
     @state = {} 
@@ -7,7 +7,7 @@ class BotMaster
   
   def add_nick(nick, callback)
     nick =~ /@(.*):(.*)\.(.*).*/
-    name = "#{$1}-#{$2}-#{$3}"
+    name = "#{$1}-relay"
     @state[nick] = Irc.new(lambda{|n|}, name, callback).bot
     Thread.new{ @state[nick].start }
     @state[nick]

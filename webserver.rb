@@ -19,7 +19,7 @@ class Webserver < Sinatra::Base
     host = matrix_channel.split(":").last
     user = "@irc/#{nick}:#{host}"
     room_id = matrix.room_id(matrix_channel, token)
-    unless user =~ /relay-/
+    unless user =~ /-relay/
       matrix.join(room_id, config["app_password"], user)
       matrix.send_message(room_id, m.message, config["app_password"], user)
     end
