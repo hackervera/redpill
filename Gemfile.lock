@@ -1,0 +1,13 @@
+GEM
+  specs:
+    cinch (2.2.4)
+    netrc (0.7.7)
+    rest_client (1.7.3)
+      netrc (~> 0.7.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cinch
+  rest_client
