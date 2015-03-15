@@ -5,3 +5,8 @@ bot_server: "irc.freenode.net"
 password: "you-password"
 app_password: "app-password"
 callback_url: "http://example.com:4567"
+channel_map: 
+  - matrix_channel: "#irc/some-channel:example.com"
+    irc_channel: "#some-channel"
+  - matrix_channel: "#irc/other-channel:example.com"
+    irc_channel: "#other-channel"
